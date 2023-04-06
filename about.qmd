@@ -1,0 +1,12 @@
+---
+title: About
+---
+
+## This Blog
+
+I've never written blogs before, but now's a good time to start as any! After reading Radek Osmulski's [book](https://rosmulski.gumroad.com/l/learn_machine_learning/blog) on Meta Learning and enrolling in the [FastAI 2022 course](https://course.fast.ai/), I've convinced myself to start a blog. I've just begun my journey into deep learning, and I want to write blog posts that are useful and informative to whoever reads them. I hope to learn better as I do this and in turn, write better too.
+
+### About Me
+
+### Contact
+
