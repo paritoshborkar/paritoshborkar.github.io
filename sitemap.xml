@@ -1,35 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://paritoshborkar.github.io/explore.html</loc>
-    <lastmod>2023-04-06T07:23:19.914Z</lastmod>
-  </url>
-  <url>
-    <loc>https://paritoshborkar.github.io/about.html</loc>
-    <lastmod>2023-04-06T07:23:20.554Z</lastmod>
-  </url>
-  <url>
-    <loc>https://paritoshborkar.github.io/transition-from-rmarkdown.html</loc>
-    <lastmod>2023-04-06T07:23:20.966Z</lastmod>
-  </url>
-  <url>
-    <loc>https://paritoshborkar.github.io/quarto-workflows/browser.html</loc>
-    <lastmod>2023-04-06T07:23:21.302Z</lastmod>
-  </url>
-  <url>
-    <loc>https://paritoshborkar.github.io/quarto-workflows/rstudio.html</loc>
-    <lastmod>2023-04-06T07:23:21.690Z</lastmod>
-  </url>
-  <url>
-    <loc>https://paritoshborkar.github.io/quarto-workflows/jupyter.html</loc>
-    <lastmod>2023-04-06T07:23:22.126Z</lastmod>
-  </url>
-  <url>
-    <loc>https://paritoshborkar.github.io/quarto-workflows/index.html</loc>
-    <lastmod>2023-04-06T07:23:22.454Z</lastmod>
+    <loc>https://paritoshborkar.github.io/posts/prepare_for_coding_interviews.html</loc>
+    <lastmod>2023-04-07T03:41:31.486Z</lastmod>
   </url>
   <url>
     <loc>https://paritoshborkar.github.io/index.html</loc>
-    <lastmod>2023-04-06T07:23:22.726Z</lastmod>
+    <lastmod>2023-04-07T03:41:32.326Z</lastmod>
+  </url>
+  <url>
+    <loc>https://paritoshborkar.github.io/transition-from-rmarkdown.html</loc>
+    <lastmod>2023-04-07T03:41:33.042Z</lastmod>
+  </url>
+  <url>
+    <loc>https://paritoshborkar.github.io/explore.html</loc>
+    <lastmod>2023-04-07T03:41:33.774Z</lastmod>
+  </url>
+  <url>
+    <loc>https://paritoshborkar.github.io/about.html</loc>
+    <lastmod>2023-04-07T03:41:34.106Z</lastmod>
+  </url>
+  <url>
+    <loc>https://paritoshborkar.github.io/quarto-workflows/index.html</loc>
+    <lastmod>2023-04-07T03:41:34.482Z</lastmod>
+  </url>
+  <url>
+    <loc>https://paritoshborkar.github.io/quarto-workflows/rstudio.html</loc>
+    <lastmod>2023-04-07T03:41:34.914Z</lastmod>
+  </url>
+  <url>
+    <loc>https://paritoshborkar.github.io/quarto-workflows/jupyter.html</loc>
+    <lastmod>2023-04-07T03:41:35.418Z</lastmod>
+  </url>
+  <url>
+    <loc>https://paritoshborkar.github.io/quarto-workflows/browser.html</loc>
+    <lastmod>2023-04-07T03:41:35.782Z</lastmod>
   </url>
 </urlset>
