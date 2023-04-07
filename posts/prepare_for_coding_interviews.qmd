@@ -1,0 +1,56 @@
+---
+title: Preparing for Technical Coding Interviews
+description: "A guide to approach Leetcode style coding interviews for software engineers"
+author: "Paritosh Borkar"
+date: "04/06/2023"
+categories:
+  - code
+  - guide
+---
+
+## Overview {#overview}
+
+Technical Leetcode style interviews are the norm in the industry when applying for software engineering roles and are a crucial part of the interview process. I’ve listed down some tips to prepare for them, which also serve as a checklist before diving into an interview.
+
+## Candidate Expectations {#expectations}
+
+What’s required from a candidate in a technical coding interview?
+
+- Understanding data structures and algorithms: Know how to implement them, their limitations, and their space and time complexities. The [Blind 75 Leetcode questions](https://leetcode.com/discuss/general-discussion/460599/blind-75-leetcode-questions) are a great collection of problems that should cover all your bases.
+- Requirements Analysis: As a candidate, you should spend the first few minutes reading the problem statement and ask the right questions to the interviewer to determine the requirements to solve the problem. Write down constraints and additional requirements in the shared document since other engineers will look at this after the interview. Once requirements are defined, you should refrain from revisiting them since this shows a lack of foresight from the candidate. Repeatedly changing the requirements also leads to additional time rewriting the solution, and the interviewer won’t have time to ask you a follow-up question.
+- Communication: Always explain how you are approaching the problem at every step. Take a small example and do a quick dry run if necessary. Before implementing your solution, write down the pseudo-code for your solution on a high level. This lets you communicate your approach to the interviewer and helps you work out any kinks and edge cases in your answer.
+- Writing code: Once you have an approach, writing down your solution should not take too long. After enough practice, you should be able to implement basic algorithms quickly. Make sure to implement an optimal approach, or if you can’t, communicate that to the interviewer. Let them know that the solution is not optimal and that you understand its risks.
+- Final checks: Once you’ve written your code walk through it line by line and check for any syntactical or logical bugs. Do a dry run with a sample input using your solution.
+
+## Requirements Analysis {#requirements-analysis}
+
+What questions should you ask to define the requirements of the problem?
+
+- Input/Output Structure: Ask the interviewer what the input/output should look like. Sometimes they’ll leave it up to you to define it.
+- Missing constraints: This will likely be the bulk of the questions you’ll ask them. Constraints about the input, the expected performance of the solution and algorithmic constraints will be missing in the problem statement, whether intentional or unintentional.
+- Confirming requirements: Check the expected output against a sample input and confirm with the interviewer.
+
+## Communication and Pseudo Code {#communication-and-pseudo-code}
+
+- Communicating your approach while actively thinking about a solution is not easy and takes some practice. It’s okay to backtrack on your solution and rewrite it as long as you explain your reasoning to your interviewer. Apart from your technical understanding, interviewers also judge you based on how well you can work with them, so communication is crucial.
+- Interviewers are more interested in how you approach a problem rather than merely arriving at a solution. To get into the habit of walking them through your solution, it is highly recommended to conduct mock interviewers with other engineers.
+- If you’re unsure about what kind of data structure or algorithm to use, asking the interviewers for hints is okay. They are there to help you out. From their perspective, it’s also in their best interest for you to solve a problem since conducting interviews is a significant time investment for them. You should be working with them to arrive at a solution.
+
+## Writing Code {#writing-code}
+
+- Once you have a solution and have written up your pseudo-code, implementing it should be quick. Make sure to create your method signatures and class structures before implementing the rest of your logic.
+- Don’t go back to make significant changes to your pseudo-code since this suggests a lack of foresight and planning.
+- Your pseudo-code only provides a solution on a high level, so implementing checks for edge cases can be done at the end, again only if you let the interviewer know about it.
+
+## Final Checks {#final-checks}
+
+- Once you have written up your code, check all your lines for bugs and let the interviewer know you’re doing that. It does not look good if they point out bugs in your code, so be proactive and let them know that you’re checking your code. You will be writing code within a small amount of time, so minor bugs are expected.
+- Once you have cleaned up your code, take a sample input and run it against your code. Use variable names and arrows to represent their changing states. Use markers like * or | or → to mark the current data being processed.
+    - Example: Finding the largest number in an array
+    Input: [-3 0 5 2 9 -1 10 ] 
+    current_index: 0 → 1 → 2 → 3 → 4 → 5 → 6
+    current_max: -3 → 0 → 5 → 5 → 9 → 9 → 10
+- Write down the time and space complexities of your solution. Give the interviewer your reasoning and let them know if you think this is the most optimal approach for the problem.
+- Lastly, if the solution can be improved upon and there isn't enough time to update it, ask the interviewer how they would approach the problem.
+
+The only way to get better at interviewing is by taking practice interviews. Talk to your friends and colleagues, or sign up for online mock interviews (I think there are a few platforms out there for anonymous interviewing) and get comfortable with the process. It can be daunting at first, but failing as much as possible during practice is better than during an interview. Good luck!

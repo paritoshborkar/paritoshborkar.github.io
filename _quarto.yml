@@ -28,8 +28,7 @@ website:
     collapse-level: 2
     contents:
       - href: index.qmd
-        text: Welcome
-      - text: Posts
+        text: Home
       - about.qmd
 
 

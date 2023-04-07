@@ -1,8 +1,13 @@
 ---
-title: "Blog Posts"
+title: "Welcome"
 subtitle: "Writing better to learn better"
+listing:
+  contents: posts
+  sort: "date desc"
+  type: default
+  categories: true
 ---
 
-## Welcome {#welcome}
+## Posts {#posts}
 
 
