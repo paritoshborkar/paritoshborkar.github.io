@@ -1,39 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://paritoshborkar.github.io/posts/prepare_for_coding_interviews.html</loc>
-    <lastmod>2023-04-07T03:45:40.857Z</lastmod>
-  </url>
-  <url>
-    <loc>https://paritoshborkar.github.io/index.html</loc>
-    <lastmod>2023-04-07T03:45:42.793Z</lastmod>
-  </url>
-  <url>
     <loc>https://paritoshborkar.github.io/transition-from-rmarkdown.html</loc>
-    <lastmod>2023-04-07T03:45:43.209Z</lastmod>
-  </url>
-  <url>
-    <loc>https://paritoshborkar.github.io/explore.html</loc>
-    <lastmod>2023-04-07T03:45:43.649Z</lastmod>
+    <lastmod>2025-12-20T22:16:09.344Z</lastmod>
   </url>
   <url>
     <loc>https://paritoshborkar.github.io/about.html</loc>
-    <lastmod>2023-04-07T03:45:43.921Z</lastmod>
+    <lastmod>2025-12-20T22:16:09.294Z</lastmod>
   </url>
   <url>
-    <loc>https://paritoshborkar.github.io/quarto-workflows/index.html</loc>
-    <lastmod>2023-04-07T03:45:44.253Z</lastmod>
-  </url>
-  <url>
-    <loc>https://paritoshborkar.github.io/quarto-workflows/rstudio.html</loc>
-    <lastmod>2023-04-07T03:45:44.629Z</lastmod>
-  </url>
-  <url>
-    <loc>https://paritoshborkar.github.io/quarto-workflows/jupyter.html</loc>
-    <lastmod>2023-04-07T03:45:45.049Z</lastmod>
+    <loc>https://paritoshborkar.github.io/index.html</loc>
+    <lastmod>2025-12-20T22:16:09.313Z</lastmod>
   </url>
   <url>
     <loc>https://paritoshborkar.github.io/quarto-workflows/browser.html</loc>
-    <lastmod>2023-04-07T03:45:45.365Z</lastmod>
+    <lastmod>2025-12-20T22:16:09.314Z</lastmod>
+  </url>
+  <url>
+    <loc>https://paritoshborkar.github.io/quarto-workflows/index.html</loc>
+    <lastmod>2025-12-20T22:16:09.344Z</lastmod>
+  </url>
+  <url>
+    <loc>https://paritoshborkar.github.io/quarto-workflows/rstudio.html</loc>
+    <lastmod>2025-12-20T22:16:09.344Z</lastmod>
+  </url>
+  <url>
+    <loc>https://paritoshborkar.github.io/quarto-workflows/jupyter.html</loc>
+    <lastmod>2025-12-20T22:16:09.344Z</lastmod>
+  </url>
+  <url>
+    <loc>https://paritoshborkar.github.io/posts/prepare_for_coding_interviews.html</loc>
+    <lastmod>2025-12-20T22:16:09.313Z</lastmod>
+  </url>
+  <url>
+    <loc>https://paritoshborkar.github.io/explore.html</loc>
+    <lastmod>2025-12-20T22:16:09.294Z</lastmod>
   </url>
 </urlset>
