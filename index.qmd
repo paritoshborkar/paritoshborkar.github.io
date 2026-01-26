@@ -1,6 +1,6 @@
 ---
 title: "Welcome"
-subtitle: "Writing better to learn better"
+subtitle: "Learning through teaching"
 listing:
   contents: posts
   sort: "date desc"
@@ -9,5 +9,3 @@ listing:
 ---
 
 ## Posts {#posts}
-
-
