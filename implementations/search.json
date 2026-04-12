@@ -1,0 +1,37 @@
+[
+  {
+    "objectID": "tutorials/index.html",
+    "href": "tutorials/index.html",
+    "title": "Tutorials",
+    "section": "",
+    "text": "No matching items"
+  },
+  {
+    "objectID": "papers/index.html",
+    "href": "papers/index.html",
+    "title": "Paper Implementations",
+    "section": "",
+    "text": "No matching items"
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "ML Papers & Tutorials",
+    "section": "",
+    "text": "Implementations of influential ML papers and educational tutorials, each with its own reproducible environment."
+  },
+  {
+    "objectID": "index.html#papers",
+    "href": "index.html#papers",
+    "title": "ML Papers & Tutorials",
+    "section": "Papers",
+    "text": "Papers\nImplementations of seminal ML research papers."
+  },
+  {
+    "objectID": "index.html#tutorials",
+    "href": "index.html#tutorials",
+    "title": "ML Papers & Tutorials",
+    "section": "Tutorials",
+    "text": "Tutorials\nFrom-scratch educational walkthroughs of ML concepts."
+  }
+]
