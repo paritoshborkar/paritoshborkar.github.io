@@ -182,9 +182,8 @@ window.Quarto = {
   <li><a href="#understanding-attention" id="toc-understanding-attention" class="nav-link" data-scroll-target="#understanding-attention">3. Understanding Attention</a>
   <ul class="collapse">
   <li><a href="#side-notes" id="toc-side-notes" class="nav-link" data-scroll-target="#side-notes">3.1 Side Notes</a></li>
-  <li><a href="#attention-block" id="toc-attention-block" class="nav-link" data-scroll-target="#attention-block">3. Attention Block</a></li>
+  <li><a href="#attention-block" id="toc-attention-block" class="nav-link" data-scroll-target="#attention-block">3.2 Attention Block</a></li>
   </ul></li>
-  <li><a href="#positional-encoding" id="toc-positional-encoding" class="nav-link" data-scroll-target="#positional-encoding">7. Positional Encoding</a></li>
   <li><a href="#the-transformer-model" id="toc-the-transformer-model" class="nav-link" data-scroll-target="#the-transformer-model">4. The Transformer Model</a></li>
   <li><a href="#evaluation" id="toc-evaluation" class="nav-link" data-scroll-target="#evaluation">5. Evaluation</a>
   <ul class="collapse">
@@ -647,7 +646,7 @@ To predict <em>“was”</em>, we need to remember that the subject is <em>“ki
 </ul>
 </section>
 <section id="attention-block" class="level3">
-<h3 class="anchored" data-anchor-id="attention-block">3. Attention Block</h3>
+<h3 class="anchored" data-anchor-id="attention-block">3.2 Attention Block</h3>
 <p>We can combine every thing we have learnt into a resusable attention block</p>
 <div id="492fc684" class="cell">
 <details class="code-fold">
@@ -682,48 +681,6 @@ To predict <em>“was”</em>, we need to remember that the subject is <em>“ki
 </details>
 </div>
 </section>
-</section>
-<section id="positional-encoding" class="level2">
-<h2 class="anchored" data-anchor-id="positional-encoding">7. Positional Encoding</h2>
-<p>Self-attention is <em>permutation-invariant</em>: if you shuffle the tokens, the attention weights change but the operation itself has no built-in notion of order. This is a problem for language, where word order carries meaning.</p>
-<p><strong>The fix:</strong> add a positional signal to each token’s embedding before attention. Two main options:</p>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 33%">
-<col style="width: 33%">
-<col style="width: 33%">
-</colgroup>
-<thead>
-<tr class="header">
-<th></th>
-<th>Learned</th>
-<th>Sinusoidal (paper)</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>How</td>
-<td><code>nn.Embedding(context_size, n_embed)</code></td>
-<td>Deterministic sine/cosine formula</td>
-</tr>
-<tr class="even">
-<td>Trained</td>
-<td>Yes, from data</td>
-<td>No</td>
-</tr>
-<tr class="odd">
-<td>Extrapolates beyond training length</td>
-<td>No</td>
-<td>Yes</td>
-</tr>
-<tr class="even">
-<td>Performance</td>
-<td>Similar in practice</td>
-<td>Similar in practice</td>
-</tr>
-</tbody>
-</table>
-<p>We use <strong>learned</strong> positional embeddings here. Since our training sequences are always exactly <code>CONTEXT_SIZE</code> tokens, we never need to extrapolate, so the learned approach is simpler and works equally well.</p>
 </section>
 <section id="the-transformer-model" class="level2">
 <h2 class="anchored" data-anchor-id="the-transformer-model">4. The Transformer Model</h2>
