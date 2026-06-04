@@ -1,7 +1,9 @@
 [
   {
     "listing": "/tutorials/index.html",
-    "items": []
+    "items": [
+      "/tutorials/tokenization/notebook.html"
+    ]
   },
   {
     "listing": "/papers/index.html",

@@ -1,15 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://paritoshborkar.github.io/implementations/tutorials/index.html</loc>
-    <lastmod>2026-04-12T23:55:07.703Z</lastmod>
-  </url>
-  <url>
-    <loc>https://paritoshborkar.github.io/implementations/papers/index.html</loc>
-    <lastmod>2026-04-12T23:55:07.703Z</lastmod>
+    <loc>https://paritoshborkar.github.io/implementations/papers/attention-is-all-you-need/tutorial.html</loc>
+    <lastmod>2026-06-04T19:02:20.828Z</lastmod>
   </url>
   <url>
     <loc>https://paritoshborkar.github.io/implementations/index.html</loc>
-    <lastmod>2026-04-12T23:55:07.703Z</lastmod>
+    <lastmod>2026-06-04T19:02:20.819Z</lastmod>
+  </url>
+  <url>
+    <loc>https://paritoshborkar.github.io/implementations/tutorials/tokenization/notebook.html</loc>
+    <lastmod>2026-06-04T19:02:20.831Z</lastmod>
+  </url>
+  <url>
+    <loc>https://paritoshborkar.github.io/implementations/tutorials/index.html</loc>
+    <lastmod>2026-06-04T19:02:20.831Z</lastmod>
+  </url>
+  <url>
+    <loc>https://paritoshborkar.github.io/implementations/papers/index.html</loc>
+    <lastmod>2026-06-04T19:02:20.830Z</lastmod>
   </url>
 </urlset>
