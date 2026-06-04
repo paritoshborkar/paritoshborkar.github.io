@@ -228,7 +228,7 @@ window.Quarto = {
 <p><strong>The progression:</strong> 1. Bigram model: predict the next token using only the current token 2. Self-attention: Understand how attention works to let every token within the context window inform the prediction of the next token 3. Transformer: combine attention with positional encoding to complete the model. 4. Metrics: Look at qualitative metrics like Perplexity to understand the improvement from bigram to transformer.</p>
 <p>Each step is motivated by the failure of the previous one.</p>
 <p>We start off my making this code device agnostic, setting it to either CPU or NVIDIA cuda GPU.</p>
-<div id="bf6ce0ff" class="cell">
+<div id="bf6ce0ff" class="cell" data-execution_count="1">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch</span>
@@ -245,7 +245,7 @@ window.Quarto = {
 <h2 class="anchored" data-anchor-id="setting-up-data">1. Setting up Data</h2>
 <p>We use the <strong>Tiny Shakespeare</strong> dataset, which is a concatenation of Shakespeare’s work. It’s small enough (~1mb) to train on CPU in minutes while being complex enough to show a meaningful difference between a bigram model and a transformer.</p>
 <p>The task: given the previous <code>CONTEXT_SIZE</code> tokens, predict the next one.</p>
-<div id="2217b0ab" class="cell">
+<div id="2217b0ab" class="cell" data-execution_count="2">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> requests</span>
@@ -281,7 +281,7 @@ First, you</code></pre>
 <p><strong>Why not full words?</strong> The vocabulary would be quite large (~25k unique words in the dataset). Also as there are several words that appear with very low frequency, these words won’t be seen by the model at all during training.</p>
 <p><strong>Why BPE (Byte-Pair Encoding)?</strong> BPE finds a middle ground by learning a vocabulary of subword units from the corpus. Common words become single tokens while rare words split into recognisable pieces. This gives us a compact vocabulary while handling unseen words gracefully.</p>
 <p><strong>Why use <code>Whitespace, Punctuation</code> pre-tokenization?</strong> The dataset holds punctuation meaningfully like with colons after speaker names and commas in verse. By splitting on punctuation before BPE training, each punctuation character becomes its own token rather than getting fused into adjacent words (e.g.&nbsp;<code>"Citizen:"</code> → <code>["Citizen", ":"]</code>).</p>
-<div id="007a5a5b" class="cell" data-execution_count="110">
+<div id="007a5a5b" class="cell" data-execution_count="3">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tokenizers <span class="im">import</span> Tokenizer</span>
@@ -327,7 +327,7 @@ Sample token ids: [187, 95, 73, 113, 82, 95, 8, 118, 74, 72, 2810]</code></pre>
 <p><strong>Sliding window with stride:</strong> Each sample is a window of <code>CONTEXT_SIZE</code> tokens. The window slides forward by <code>STRIDE</code> tokens each step. Using <code>STRIDE &lt; CONTEXT_SIZE</code> means windows overlap — the same tokens appear in multiple training contexts. On a small corpus this acts as implicit data augmentation.</p>
 <p><strong>Input / target pairs:</strong> The target is the input shifted right by one position. At every position <code>t</code>, the model sees tokens <code>0..t</code> and must predict token <code>t+1</code>. This is how language models learn to predict the next token at every step simultaneously, getting <code>T</code> training signals from a single sequence.</p>
 <p><strong>Chronological split:</strong> We split by index rather than shuffling, so the train/val/test sets are the first 80%, middle 10%, and last 10% of the corpus. This avoids leaking future context into training.</p>
-<div id="125c830a" class="cell" data-execution_count="119">
+<div id="125c830a" class="cell" data-execution_count="4">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch.nn <span class="im">as</span> nn</span>
@@ -385,12 +385,12 @@ Sample token ids: [187, 95, 73, 113, 82, 95, 8, 118, 74, 72, 2810]</code></pre>
 Train: 3456 | Val: 432 | Test: 433 token windows</code></pre>
 </div>
 </div>
-<div id="4ba76e99" class="cell" data-execution_count="118">
+<div id="4ba76e99" class="cell" data-execution_count="5">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>full_dataset[<span class="dv">3458</span><span class="op">+</span><span class="dv">432</span><span class="op">+</span><span class="dv">433</span><span class="op">-</span><span class="dv">1</span>][<span class="dv">0</span>].shape</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div class="cell-output cell-output-display" data-execution_count="118">
+<div class="cell-output cell-output-display" data-execution_count="5">
 <pre><code>torch.Size([100])</code></pre>
 </div>
 </div>
@@ -402,7 +402,7 @@ Train: 3456 | Val: 432 | Test: 433 token windows</code></pre>
 <p>Concretely, this is a single <code>nn.Embedding</code> of shape <code>(vocab_size, vocab_size)</code>. Row <code>i</code> holds the logits for all the tokens that follow token <code>i</code>. This is called a bigram model because it conditions on exactly one previous token.</p>
 <p><strong>Why start here?</strong> Any model that can’t beat a bigram is not learning meaningful context. It also keeps the training loop simple so we can focus on the architecture differences later.</p>
 <p><strong>Text Generation:</strong> At each step we take the logits for the last token, apply softmax to get a probability distribution across the vocabulary, and sample from it. We ignore all earlier tokens since the bigram model has no use for them.</p>
-<div id="44dc24ee" class="cell">
+<div id="44dc24ee" class="cell" data-execution_count="6">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> BigramModel(nn.Module):</span>
@@ -434,7 +434,7 @@ Train: 3456 | Val: 432 | Test: 433 token windows</code></pre>
 <p><strong>Cross Entropy Loss:</strong> The model outputs unnormalised logits. We use <code>F.cross_entropy</code> on the logits, which applies log softmax internally and computes the negative log likelihood of the correct token. We reshape from <code>B x T x C</code> to <code>(B*T) x C</code> so PyTorch treats every token position as an independent prediction. The model gets <code>T</code> gradient signals per batch sequence.</p>
 <p><strong>AdamW Optimizer:</strong> Adam optimizer with weight decay. Weight decay adds a small penalty on large weights, acting as regularisation. <code>set_to_none=True</code> in <code>zero_grad</code> is used for a minor efficiency since it releases the gradient tensors entirely rather than filling them with zeros.</p>
 <p><strong>Validation Loss:</strong> We measure this every 10 epochs using <code>torch.no_grad()</code> to skip building the gradient graph during validation.</p>
-<div id="c23e025f" class="cell">
+<div id="c23e025f" class="cell" data-execution_count="7">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="at">@torch.no_grad</span>()</span>
@@ -470,7 +470,7 @@ Train: 3456 | Val: 432 | Test: 433 token windows</code></pre>
 <span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="ss">f"epoch </span><span class="sc">{</span>epoch <span class="op">+</span> <span class="dv">1</span><span class="sc">:3d}</span><span class="ss"> | train loss </span><span class="sc">{</span>loss<span class="sc">.</span>item()<span class="sc">:.4f}</span><span class="ss"> | val loss </span><span class="sc">{</span>val_loss<span class="sc">:.4f}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<div id="1c7e8b0a" class="cell" data-execution_count="38">
+<div id="1c7e8b0a" class="cell" data-execution_count="8">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>EPOCHS_BIGRAM <span class="op">=</span> <span class="dv">100</span></span>
@@ -480,19 +480,19 @@ Train: 3456 | Val: 432 | Test: 433 token windows</code></pre>
 <span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>train(bigram_model, train_loader, val_loader, EPOCHS_BIGRAM, LEARNING_RATE_BIGRAM)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>epoch   1 | train loss 9.4816 | val loss 9.3802
-epoch  11 | train loss 8.1961 | val loss 8.5544
-epoch  21 | train loss 7.3449 | val loss 7.8799
-epoch  31 | train loss 6.6689 | val loss 7.3769
-epoch  41 | train loss 6.1872 | val loss 7.0306
-epoch  51 | train loss 5.9490 | val loss 6.8076
-epoch  61 | train loss 5.1492 | val loss 6.6722
-epoch  71 | train loss 5.1802 | val loss 6.5953
-epoch  81 | train loss 5.1503 | val loss 6.5560
-epoch  91 | train loss 4.7186 | val loss 6.5401</code></pre>
+<pre><code>epoch   1 | train loss 9.3849 | val loss 9.4081
+epoch  11 | train loss 8.2824 | val loss 8.5785
+epoch  21 | train loss 7.3716 | val loss 7.8939
+epoch  31 | train loss 6.5840 | val loss 7.3768
+epoch  41 | train loss 5.9875 | val loss 7.0161
+epoch  51 | train loss 5.6641 | val loss 6.7825
+epoch  61 | train loss 5.3628 | val loss 6.6432
+epoch  71 | train loss 5.1117 | val loss 6.5668
+epoch  81 | train loss 4.9374 | val loss 6.5292
+epoch  91 | train loss 4.7082 | val loss 6.5153</code></pre>
 </div>
 </div>
-<div id="9963a137" class="cell" data-execution_count="114">
+<div id="9963a137" class="cell" data-execution_count="9">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>prompt <span class="op">=</span> <span class="st">"To be or not to be"</span></span>
@@ -506,7 +506,7 @@ epoch  91 | train loss 4.7186 | val loss 6.5401</code></pre>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Prompt: To be or not to be
-Generated: To be or not to be your honour and fear We follow Whi bail Alas consider hat intell Grand suitor gen spent ousin wayward ldom belongs conscience and conquest threats bea spleen armour Attend ley vial shut admitted lit timeless AL husbands shriek Vill ow tion disinherit Apollo CIUS mast Swear lament obedient feits BRAKENBURY Polix dram faithful swords Put up , Her past or endure midwife os beg sim velvet welcome all , Coriolanus abund eming uns UM modesty sol ties slanderous asure burn vou MIST plent Lond dr UCES prove , poor devo kindness renown venge try whether soft courage ancy Direct Mariner DUKE</code></pre>
+Generated: To be or not to be freely del uce alo spirits greeting post to be writ ls greeting acle ering lists aries smooth gaunt degre likeness therein cation miseries pant cation marvell yonder value tardy thed Tut ct sa lost too much , to give them ri ft umes uto womb ction GLO purses poss board flatterers arest reported dream beauteous WES ROSS Rus gri chron among muster pu Bol ignorant More than my accursed Young pierce shed fruits ZALO search time when I shall know you ; And seized sav hourly ant fin members wound line prayers Indeed white Bagot trial Benvolio con MAMIL ray</code></pre>
 </div>
 </div>
 <p>The output appears to be gibberish but it atleast manages to add whitespaces at relatively frequent positions, giving it the structure of a sentence. But it doesn’t look like it has learnt any meaningful understanding between tokens.</p>
@@ -529,7 +529,7 @@ To predict <em>“was”</em>, we need to remember that the subject is <em>“ki
 </ul>
 <p>For every token we perform the dot product of its query with the key of every token, including iteself. Higher the value, higher the correlation between any two tokens.</p>
 <p>Here’s an example:</p>
-<div id="fc62bb6b" class="cell" data-execution_count="42">
+<div id="fc62bb6b" class="cell" data-execution_count="10">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>B, T, C <span class="op">=</span> <span class="dv">4</span>, <span class="dv">8</span>, <span class="dv">32</span> <span class="co"># Batch of B tokens, of sequence length T, represented by embeddings of dimension C</span></span>
@@ -539,7 +539,7 @@ To predict <em>“was”</em>, we need to remember that the subject is <em>“ki
 </details>
 </div>
 <p>Here <code>HEAD_SIZE</code> is the dimensions of the vector produced by the Query, Key and Value tensors for every token. We use the tokens’ embeddings, represented by <code>input</code> to create the query, key and value for every token.</p>
-<div id="344e94fb" class="cell">
+<div id="344e94fb" class="cell" data-execution_count="11">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>query <span class="op">=</span> nn.Linear(C, HEAD_SIZE, bias<span class="op">=</span><span class="va">False</span>) <span class="co"># Maps from dimension C to HEAD_SIZE</span></span>
@@ -553,25 +553,25 @@ To predict <em>“was”</em>, we need to remember that the subject is <em>“ki
 </details>
 </div>
 <p>Now that we have the queries and keys for every token, we will find the dot product between the two. In order to do make matrix multiplication compatible, we will transpose the key tensor on the last and second last dimension.</p>
-<div id="708013e6" class="cell" data-execution_count="51">
+<div id="708013e6" class="cell" data-execution_count="12">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>weights <span class="op">=</span> q <span class="op">@</span> k.transpose(<span class="op">-</span><span class="dv">2</span>, <span class="op">-</span><span class="dv">1</span>) <span class="co"># (B x T x HEAD_SIZE) @ (B x HEAD_SIZE x T) -&gt; (B x T x T)</span></span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>weights.shape</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div class="cell-output cell-output-display" data-execution_count="51">
+<div class="cell-output cell-output-display" data-execution_count="12">
 <pre><code>torch.Size([4, 8, 8])</code></pre>
 </div>
 </div>
 <p>This makes sense when we look at how we mentioned earlier that attention is a mechanism to allow tokens to interact with each other. So a tensor shape of <code>B x T x T</code> represents this interaction between the query-key pairs provided by every token.</p>
 <p>But since we are on the task of predicting the next token given the previous sequence of tokens, every token should only be concerned with every other token that comes before it. Right now the <code>out</code> tensor represents interaction between every pair of tokens, regardless of where they are in the sequence. We create a mask so that every interaction is a product of only the previous tokens.</p>
-<div id="1588846f" class="cell" data-execution_count="52">
+<div id="1588846f" class="cell" data-execution_count="13">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>tril <span class="op">=</span> torch.tril(torch.ones(size<span class="op">=</span>(T, T))) <span class="co"># Creates a lower triangular tensor with ones</span></span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>tril</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div class="cell-output cell-output-display" data-execution_count="52">
+<div class="cell-output cell-output-display" data-execution_count="13">
 <pre><code>tensor([[1., 0., 0., 0., 0., 0., 0., 0.],
         [1., 1., 0., 0., 0., 0., 0., 0.],
         [1., 1., 1., 0., 0., 0., 0., 0.],
@@ -582,42 +582,39 @@ To predict <em>“was”</em>, we need to remember that the subject is <em>“ki
         [1., 1., 1., 1., 1., 1., 1., 1.]])</code></pre>
 </div>
 </div>
-<div id="ed8b0444" class="cell">
+<div id="ed8b0444" class="cell" data-execution_count="14">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>weights <span class="op">=</span> weights.masked_fill(tril <span class="op">==</span> <span class="dv">0</span>, <span class="bu">float</span>(<span class="st">"-inf"</span>))</span>
 <span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>weights <span class="op">=</span> torch.softmax(weights, dim<span class="op">=-</span><span class="dv">1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div class="cell-output cell-output-display" data-execution_count="54">
-<pre><code>torch.Size([4, 8, 8])</code></pre>
-</div>
 </div>
 <p>We apply softmax after applying the mask to normalize the interaction between each pair of tokens. Instead of ending up with arbitrarily large weights or negative values, which wouldn’t make sense, applying softmax normalizes the values between 0 and 1.</p>
 <p>Now that we know how strong or weak each query-key pair is, we can multiply the tensor with the value tensor to get how well each token should <em>attend</em> to every other token. This will represent the transformed value of a token after it has interacted with every other token in the sequence.</p>
-<div id="b81c693c" class="cell">
+<div id="b81c693c" class="cell" data-execution_count="15">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>v <span class="op">=</span> value(<span class="bu">input</span>) <span class="co"># B x T x HEAD_SIZE</span></span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>out <span class="op">=</span> weights <span class="op">@</span> v <span class="co"># (B x T x T) @ (B x T x HEAD_SIZE) -&gt; B x T x HEAD_SIZE</span></span>
-<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a><span class="co"># This represents how well each token attends to every other token in the sequence </span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>v <span class="op">=</span> value(<span class="bu">input</span>) <span class="co"># B x T x HEAD_SIZE</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>out <span class="op">=</span> weights <span class="op">@</span> v <span class="co"># (B x T x T) @ (B x T x HEAD_SIZE) -&gt; B x T x HEAD_SIZE</span></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a><span class="co"># This represents how well each token attends to every other token in the sequence </span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 <p>One thing you’ll notice here is that the query-key dot product grows or diminshes in value the longer the sequence gets. So taking a softmax of the <code>weights</code> tensor will result in a sharper distribution with values either very close to 0 or 1, essentially becoming one-hot vectors. This is not desirable, since we want our tokens to be attended to by multiple tokens.</p>
 <p>So to avoid this we divide the dot product by the scaling value <span class="math inline">\(\sqrt{head\_size}\)</span>. So the <code>weights</code> tensor becomes:</p>
-<div id="0215808f" class="cell" data-execution_count="56">
+<div id="0215808f" class="cell" data-execution_count="16">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>weights <span class="op">=</span> q <span class="op">@</span> k.transpose(<span class="op">-</span><span class="dv">2</span>, <span class="op">-</span><span class="dv">1</span>) <span class="op">*</span> HEAD_SIZE<span class="op">**-</span><span class="fl">0.5</span></span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>weights <span class="op">=</span> weights.masked_fill(tril <span class="op">==</span> <span class="dv">0</span>, <span class="bu">float</span>(<span class="st">"-inf"</span>))</span>
-<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>weights <span class="op">=</span> torch.softmax(weights, dim<span class="op">=-</span><span class="dv">1</span>)</span>
-<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>v <span class="op">=</span> value(<span class="bu">input</span>) <span class="co"># B x T x HEAD_SIZE</span></span>
-<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>out <span class="op">=</span> weights <span class="op">@</span> v <span class="co"># (B x T x T) @ (B x T x HEAD_SIZE) -&gt; B x T x HEAD_SIZE</span></span>
-<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>out.shape</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>weights <span class="op">=</span> q <span class="op">@</span> k.transpose(<span class="op">-</span><span class="dv">2</span>, <span class="op">-</span><span class="dv">1</span>) <span class="op">*</span> HEAD_SIZE<span class="op">**-</span><span class="fl">0.5</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>weights <span class="op">=</span> weights.masked_fill(tril <span class="op">==</span> <span class="dv">0</span>, <span class="bu">float</span>(<span class="st">"-inf"</span>))</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>weights <span class="op">=</span> torch.softmax(weights, dim<span class="op">=-</span><span class="dv">1</span>)</span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>v <span class="op">=</span> value(<span class="bu">input</span>) <span class="co"># B x T x HEAD_SIZE</span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>out <span class="op">=</span> weights <span class="op">@</span> v <span class="co"># (B x T x T) @ (B x T x HEAD_SIZE) -&gt; B x T x HEAD_SIZE</span></span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>out.shape</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div class="cell-output cell-output-display" data-execution_count="56">
+<div class="cell-output cell-output-display" data-execution_count="16">
 <pre><code>torch.Size([4, 8, 16])</code></pre>
 </div>
 </div>
@@ -625,14 +622,14 @@ To predict <em>“was”</em>, we need to remember that the subject is <em>“ki
 <p><span class="math display">\[Attention(Q, K, V) = softmax(\frac{QK^T}{\sqrt{d_k}})V\]</span></p>
 <p>where <span class="math inline">\(Q, K, V\)</span> are the query, key and value tensors and <span class="math inline">\(d_k\)</span> is the head_size</p>
 <p>At this point <code>out</code> represents how strongly each token should attend to every other token, but we haven’t given them a chance to interact with each other to learn new features. So we add a simple feed forward linear layer to go back to the embedding space</p>
-<div id="881c0939" class="cell" data-execution_count="58">
+<div id="881c0939" class="cell" data-execution_count="17">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>ff_linear <span class="op">=</span> nn.Linear(in_features<span class="op">=</span>HEAD_SIZE, out_features<span class="op">=</span>C)</span>
-<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> ff_linear(out) <span class="co"># B x T x C</span></span>
-<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>x.shape</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>ff_linear <span class="op">=</span> nn.Linear(in_features<span class="op">=</span>HEAD_SIZE, out_features<span class="op">=</span>C)</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> ff_linear(out) <span class="co"># B x T x C</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>x.shape</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div class="cell-output cell-output-display" data-execution_count="59">
+<div class="cell-output cell-output-display" data-execution_count="17">
 <pre><code>torch.Size([4, 8, 32])</code></pre>
 </div>
 </div>
@@ -648,36 +645,36 @@ To predict <em>“was”</em>, we need to remember that the subject is <em>“ki
 <section id="attention-block" class="level3">
 <h3 class="anchored" data-anchor-id="attention-block">3.2 Attention Block</h3>
 <p>We can combine every thing we have learnt into a resusable attention block</p>
-<div id="492fc684" class="cell">
+<div id="492fc684" class="cell" data-execution_count="18">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> SelfAttention(nn.Module):</span>
-<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, n_embed: <span class="bu">int</span>, head_size: <span class="bu">int</span>, context_size: <span class="bu">int</span>):</span>
-<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>        <span class="bu">super</span>().<span class="fu">__init__</span>()</span>
-<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.scale <span class="op">=</span> head_size <span class="op">**</span> <span class="op">-</span><span class="fl">0.5</span></span>
-<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.query <span class="op">=</span> nn.Linear(n_embed, head_size, bias<span class="op">=</span><span class="va">False</span>)</span>
-<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.key <span class="op">=</span> nn.Linear(n_embed, head_size, bias<span class="op">=</span><span class="va">False</span>)</span>
-<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.value <span class="op">=</span> nn.Linear(n_embed, head_size, bias<span class="op">=</span><span class="va">False</span>)</span>
-<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a>        <span class="co"># The mask is registered as a buffer so that it is loaded to the device</span></span>
-<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a>        <span class="co"># without being treated as a learnable parameter.</span></span>
-<span id="cb30-12"><a href="#cb30-12" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.register_buffer(</span>
-<span id="cb30-13"><a href="#cb30-13" aria-hidden="true" tabindex="-1"></a>            <span class="st">"mask"</span>, torch.tril(torch.ones(context_size, context_size))</span>
-<span id="cb30-14"><a href="#cb30-14" aria-hidden="true" tabindex="-1"></a>        )</span>
-<span id="cb30-15"><a href="#cb30-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-16"><a href="#cb30-16" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, x: torch.Tensor) <span class="op">-&gt;</span> torch.Tensor:</span>
-<span id="cb30-17"><a href="#cb30-17" aria-hidden="true" tabindex="-1"></a>        B, T, _ <span class="op">=</span> x.shape</span>
-<span id="cb30-18"><a href="#cb30-18" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb30-19"><a href="#cb30-19" aria-hidden="true" tabindex="-1"></a>        q <span class="op">=</span> <span class="va">self</span>.query(x) <span class="co"># B x T x head_size</span></span>
-<span id="cb30-20"><a href="#cb30-20" aria-hidden="true" tabindex="-1"></a>        k <span class="op">=</span> <span class="va">self</span>.key(x) <span class="co"># B x T x head_size</span></span>
-<span id="cb30-21"><a href="#cb30-21" aria-hidden="true" tabindex="-1"></a>        v <span class="op">=</span> <span class="va">self</span>.value(x) <span class="co"># B x T x head_size</span></span>
-<span id="cb30-22"><a href="#cb30-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-23"><a href="#cb30-23" aria-hidden="true" tabindex="-1"></a>        weights <span class="op">=</span> q <span class="op">@</span> k.transpose(<span class="op">-</span><span class="dv">2</span>, <span class="op">-</span><span class="dv">1</span>) <span class="op">*</span> <span class="va">self</span>.scale <span class="co"># B x T x T</span></span>
-<span id="cb30-24"><a href="#cb30-24" aria-hidden="true" tabindex="-1"></a>        weights <span class="op">=</span> weights.masked_fill(<span class="va">self</span>.mask[:T, :T] <span class="op">==</span> <span class="dv">0</span>, <span class="bu">float</span>(<span class="st">"-inf"</span>))</span>
-<span id="cb30-25"><a href="#cb30-25" aria-hidden="true" tabindex="-1"></a>        weights <span class="op">=</span> F.softmax(weights, dim<span class="op">=-</span><span class="dv">1</span>) <span class="co"># B x T x T</span></span>
-<span id="cb30-26"><a href="#cb30-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-27"><a href="#cb30-27" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> weights <span class="op">@</span> v <span class="co"># B x T x head_size</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> SelfAttention(nn.Module):</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, n_embed: <span class="bu">int</span>, head_size: <span class="bu">int</span>, context_size: <span class="bu">int</span>):</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>        <span class="bu">super</span>().<span class="fu">__init__</span>()</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.scale <span class="op">=</span> head_size <span class="op">**</span> <span class="op">-</span><span class="fl">0.5</span></span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.query <span class="op">=</span> nn.Linear(n_embed, head_size, bias<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.key <span class="op">=</span> nn.Linear(n_embed, head_size, bias<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.value <span class="op">=</span> nn.Linear(n_embed, head_size, bias<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>        <span class="co"># The mask is registered as a buffer so that it is loaded to the device</span></span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>        <span class="co"># without being treated as a learnable parameter.</span></span>
+<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.register_buffer(</span>
+<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a>            <span class="st">"mask"</span>, torch.tril(torch.ones(context_size, context_size))</span>
+<span id="cb29-14"><a href="#cb29-14" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb29-15"><a href="#cb29-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-16"><a href="#cb29-16" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, x: torch.Tensor) <span class="op">-&gt;</span> torch.Tensor:</span>
+<span id="cb29-17"><a href="#cb29-17" aria-hidden="true" tabindex="-1"></a>        B, T, _ <span class="op">=</span> x.shape</span>
+<span id="cb29-18"><a href="#cb29-18" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb29-19"><a href="#cb29-19" aria-hidden="true" tabindex="-1"></a>        q <span class="op">=</span> <span class="va">self</span>.query(x) <span class="co"># B x T x head_size</span></span>
+<span id="cb29-20"><a href="#cb29-20" aria-hidden="true" tabindex="-1"></a>        k <span class="op">=</span> <span class="va">self</span>.key(x) <span class="co"># B x T x head_size</span></span>
+<span id="cb29-21"><a href="#cb29-21" aria-hidden="true" tabindex="-1"></a>        v <span class="op">=</span> <span class="va">self</span>.value(x) <span class="co"># B x T x head_size</span></span>
+<span id="cb29-22"><a href="#cb29-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-23"><a href="#cb29-23" aria-hidden="true" tabindex="-1"></a>        weights <span class="op">=</span> q <span class="op">@</span> k.transpose(<span class="op">-</span><span class="dv">2</span>, <span class="op">-</span><span class="dv">1</span>) <span class="op">*</span> <span class="va">self</span>.scale <span class="co"># B x T x T</span></span>
+<span id="cb29-24"><a href="#cb29-24" aria-hidden="true" tabindex="-1"></a>        weights <span class="op">=</span> weights.masked_fill(<span class="va">self</span>.mask[:T, :T] <span class="op">==</span> <span class="dv">0</span>, <span class="bu">float</span>(<span class="st">"-inf"</span>))</span>
+<span id="cb29-25"><a href="#cb29-25" aria-hidden="true" tabindex="-1"></a>        weights <span class="op">=</span> F.softmax(weights, dim<span class="op">=-</span><span class="dv">1</span>) <span class="co"># B x T x T</span></span>
+<span id="cb29-26"><a href="#cb29-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-27"><a href="#cb29-27" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> weights <span class="op">@</span> v <span class="co"># B x T x head_size</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 </section>
@@ -688,97 +685,89 @@ To predict <em>“was”</em>, we need to remember that the subject is <em>“ki
 <pre><code>token IDs  -&gt;  token embedding  +  positional embedding -&gt; self-attention -&gt; linear head (logits)</code></pre>
 <p><strong>Why <code>head_size == n_embed</code>?</strong> With a single attention head, the attention output has dimension <code>head_size</code>. The linear head expects <code>head_size</code> as input. Setting them equal means we go directly from attention output to logits without an extra projection layer.</p>
 <p><strong>Generating Text:</strong> Unlike the bigram model, we must crop the input to <code>context_size</code> tokens before each forward pass since the positional embedding table only has <code>context_size</code> rows, and the mask is pre-allocated to that size.</p>
-<div id="7f0547c2" class="cell" data-execution_count="66">
+<div id="7f0547c2" class="cell" data-execution_count="19">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Transformer(nn.Module):</span>
-<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, vocab_size: <span class="bu">int</span>, n_embed: <span class="bu">int</span>, head_size: <span class="bu">int</span>, context_size: <span class="bu">int</span>):</span>
-<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>        <span class="bu">super</span>().<span class="fu">__init__</span>()</span>
-<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.context_size <span class="op">=</span> context_size</span>
-<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.token_embedding <span class="op">=</span> nn.Embedding(vocab_size, n_embed)</span>
-<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.pos_embedding <span class="op">=</span> nn.Embedding(context_size, n_embed)</span>
-<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.attention_head <span class="op">=</span> SelfAttention(n_embed, head_size, context_size)</span>
-<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.lm_head <span class="op">=</span> nn.Linear(head_size, vocab_size)</span>
-<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, token_ids: torch.Tensor) <span class="op">-&gt;</span> torch.Tensor:</span>
-<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a>        B, T <span class="op">=</span> token_ids.shape</span>
-<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a>        x <span class="op">=</span> <span class="va">self</span>.token_embedding(token_ids) <span class="co"># B x T x n_embed</span></span>
-<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a>        x <span class="op">=</span> x <span class="op">+</span> <span class="va">self</span>.pos_embedding(torch.arange(T, device<span class="op">=</span>token_ids.device)) <span class="co"># B x T x n_embed</span></span>
-<span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a>        x <span class="op">=</span> <span class="va">self</span>.attention_head(x) <span class="co"># B x T x head_size</span></span>
-<span id="cb32-15"><a href="#cb32-15" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>.lm_head(x) <span class="co"># B x T x vocab_size</span></span>
-<span id="cb32-16"><a href="#cb32-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-17"><a href="#cb32-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">@torch.no_grad</span>()</span>
-<span id="cb32-18"><a href="#cb32-18" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> generate(<span class="va">self</span>, input_tokens: torch.Tensor, max_new_tokens: <span class="bu">int</span>) <span class="op">-&gt;</span> torch.Tensor:</span>
-<span id="cb32-19"><a href="#cb32-19" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> _ <span class="kw">in</span> <span class="bu">range</span>(max_new_tokens):</span>
-<span id="cb32-20"><a href="#cb32-20" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Crop to context_size: model cannot see more than context_size tokens</span></span>
-<span id="cb32-21"><a href="#cb32-21" aria-hidden="true" tabindex="-1"></a>            context_window <span class="op">=</span> input_tokens[:, <span class="op">-</span><span class="va">self</span>.context_size:]</span>
-<span id="cb32-22"><a href="#cb32-22" aria-hidden="true" tabindex="-1"></a>            logits <span class="op">=</span> <span class="va">self</span>(context_window)[:, <span class="op">-</span><span class="dv">1</span>, :] <span class="co"># B x C</span></span>
-<span id="cb32-23"><a href="#cb32-23" aria-hidden="true" tabindex="-1"></a>            probs <span class="op">=</span> F.softmax(logits, dim<span class="op">=-</span><span class="dv">1</span>)</span>
-<span id="cb32-24"><a href="#cb32-24" aria-hidden="true" tabindex="-1"></a>            next_token <span class="op">=</span> torch.multinomial(probs, num_samples<span class="op">=</span><span class="dv">1</span>)</span>
-<span id="cb32-25"><a href="#cb32-25" aria-hidden="true" tabindex="-1"></a>            input_tokens <span class="op">=</span> torch.cat([input_tokens, next_token], dim<span class="op">=</span><span class="dv">1</span>)</span>
-<span id="cb32-26"><a href="#cb32-26" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> input_tokens</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Transformer(nn.Module):</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, vocab_size: <span class="bu">int</span>, n_embed: <span class="bu">int</span>, head_size: <span class="bu">int</span>, context_size: <span class="bu">int</span>):</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>        <span class="bu">super</span>().<span class="fu">__init__</span>()</span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.context_size <span class="op">=</span> context_size</span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.token_embedding <span class="op">=</span> nn.Embedding(vocab_size, n_embed)</span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.pos_embedding <span class="op">=</span> nn.Embedding(context_size, n_embed)</span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.attention_head <span class="op">=</span> SelfAttention(n_embed, head_size, context_size)</span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.lm_head <span class="op">=</span> nn.Linear(head_size, vocab_size)</span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, token_ids: torch.Tensor) <span class="op">-&gt;</span> torch.Tensor:</span>
+<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a>        B, T <span class="op">=</span> token_ids.shape</span>
+<span id="cb31-12"><a href="#cb31-12" aria-hidden="true" tabindex="-1"></a>        x <span class="op">=</span> <span class="va">self</span>.token_embedding(token_ids) <span class="co"># B x T x n_embed</span></span>
+<span id="cb31-13"><a href="#cb31-13" aria-hidden="true" tabindex="-1"></a>        x <span class="op">=</span> x <span class="op">+</span> <span class="va">self</span>.pos_embedding(torch.arange(T, device<span class="op">=</span>token_ids.device)) <span class="co"># B x T x n_embed</span></span>
+<span id="cb31-14"><a href="#cb31-14" aria-hidden="true" tabindex="-1"></a>        x <span class="op">=</span> <span class="va">self</span>.attention_head(x) <span class="co"># B x T x head_size</span></span>
+<span id="cb31-15"><a href="#cb31-15" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>.lm_head(x) <span class="co"># B x T x vocab_size</span></span>
+<span id="cb31-16"><a href="#cb31-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-17"><a href="#cb31-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">@torch.no_grad</span>()</span>
+<span id="cb31-18"><a href="#cb31-18" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> generate(<span class="va">self</span>, input_tokens: torch.Tensor, max_new_tokens: <span class="bu">int</span>) <span class="op">-&gt;</span> torch.Tensor:</span>
+<span id="cb31-19"><a href="#cb31-19" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> _ <span class="kw">in</span> <span class="bu">range</span>(max_new_tokens):</span>
+<span id="cb31-20"><a href="#cb31-20" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Crop to context_size: model cannot see more than context_size tokens</span></span>
+<span id="cb31-21"><a href="#cb31-21" aria-hidden="true" tabindex="-1"></a>            context_window <span class="op">=</span> input_tokens[:, <span class="op">-</span><span class="va">self</span>.context_size:]</span>
+<span id="cb31-22"><a href="#cb31-22" aria-hidden="true" tabindex="-1"></a>            logits <span class="op">=</span> <span class="va">self</span>(context_window)[:, <span class="op">-</span><span class="dv">1</span>, :] <span class="co"># B x C</span></span>
+<span id="cb31-23"><a href="#cb31-23" aria-hidden="true" tabindex="-1"></a>            probs <span class="op">=</span> F.softmax(logits, dim<span class="op">=-</span><span class="dv">1</span>)</span>
+<span id="cb31-24"><a href="#cb31-24" aria-hidden="true" tabindex="-1"></a>            next_token <span class="op">=</span> torch.multinomial(probs, num_samples<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb31-25"><a href="#cb31-25" aria-hidden="true" tabindex="-1"></a>            input_tokens <span class="op">=</span> torch.cat([input_tokens, next_token], dim<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb31-26"><a href="#cb31-26" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> input_tokens</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 <p>We use similar training hyperparameters as the bigram model, except for a smaller learning rate. The model having more weights is therefore more sensitive to larger steps.</p>
-<div id="c9fb4d7c" class="cell">
+<div id="c9fb4d7c" class="cell" data-execution_count="20">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>EPOCHS_TRANSFORMER <span class="op">=</span> <span class="dv">200</span></span>
-<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>LR_TRANSFORMER <span class="op">=</span> <span class="fl">1e-4</span>   </span>
-<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>EMBEDDING_DIM <span class="op">=</span> <span class="dv">64</span></span>
-<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>HEAD_SIZE <span class="op">=</span> <span class="dv">64</span> <span class="co"># equal to EMBEDDING_DIM so attention output feeds directly into lm_head</span></span>
-<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>transformer_model <span class="op">=</span> Transformer(</span>
-<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>    vocab_size <span class="op">=</span> tokenizer.get_vocab_size(),</span>
-<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>    n_embed <span class="op">=</span> EMBEDDING_DIM,</span>
-<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a>    head_size <span class="op">=</span> HEAD_SIZE,</span>
-<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a>    context_size <span class="op">=</span> CONTEXT_SIZE,</span>
-<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a>).to(DEVICE)</span>
-<span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-14"><a href="#cb33-14" aria-hidden="true" tabindex="-1"></a>train(transformer_model, train_loader, val_loader, EPOCHS_TRANSFORMER, LR_TRANSFORMER)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>EPOCHS_TRANSFORMER <span class="op">=</span> <span class="dv">200</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>LR_TRANSFORMER <span class="op">=</span> <span class="fl">1e-4</span>   </span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>EMBEDDING_DIM <span class="op">=</span> <span class="dv">64</span></span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>HEAD_SIZE <span class="op">=</span> <span class="dv">64</span> <span class="co"># equal to EMBEDDING_DIM so attention output feeds directly into lm_head</span></span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>transformer_model <span class="op">=</span> Transformer(</span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>    vocab_size <span class="op">=</span> tokenizer.get_vocab_size(),</span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>    n_embed <span class="op">=</span> EMBEDDING_DIM,</span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a>    head_size <span class="op">=</span> HEAD_SIZE,</span>
+<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a>    context_size <span class="op">=</span> CONTEXT_SIZE,</span>
+<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a>).to(DEVICE)</span>
+<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a>train(transformer_model, train_loader, val_loader, EPOCHS_TRANSFORMER, LR_TRANSFORMER)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>epoch   1 | train loss 8.8494 | val loss 8.8458
-epoch  11 | train loss 6.5142 | val loss 6.6270
-epoch  21 | train loss 6.2023 | val loss 6.4130
-epoch  31 | train loss 6.1369 | val loss 6.3356
-epoch  41 | train loss 5.9221 | val loss 6.2549
-epoch  51 | train loss 5.8062 | val loss 6.1921
-epoch  61 | train loss 5.6613 | val loss 6.1611
-epoch  71 | train loss 5.7921 | val loss 6.1417
-epoch  81 | train loss 5.5944 | val loss 6.1296
-epoch  91 | train loss 5.6574 | val loss 6.1199
-epoch 101 | train loss 5.6119 | val loss 6.1087
-epoch 111 | train loss 5.5289 | val loss 6.0915
-epoch 121 | train loss 5.3657 | val loss 6.0875
-epoch 131 | train loss 5.3169 | val loss 6.0900
-epoch 141 | train loss 5.3638 | val loss 6.0984
-epoch 151 | train loss 5.4209 | val loss 6.1092
-epoch 161 | train loss 5.1857 | val loss 6.1199
-epoch 171 | train loss 5.2128 | val loss 6.1329
-epoch 181 | train loss 5.2261 | val loss 6.1464
-epoch 191 | train loss 5.0297 | val loss 6.1607</code></pre>
+<pre><code>epoch   1 | train loss 8.7100 | val loss 8.7299
+epoch  11 | train loss 6.5449 | val loss 6.6910
+epoch  21 | train loss 6.4056 | val loss 6.5690
+epoch  31 | train loss 6.2617 | val loss 6.4223
+epoch  41 | train loss 6.0876 | val loss 6.3119
+epoch  51 | train loss 5.9911 | val loss 6.2491
+epoch  61 | train loss 5.8252 | val loss 6.2214
+epoch  71 | train loss 5.8204 | val loss 6.2072
+epoch  81 | train loss 5.7453 | val loss 6.1939
+epoch  91 | train loss 5.7911 | val loss 6.1796
+epoch 101 | train loss 5.6313 | val loss 6.1645
+epoch 111 | train loss 5.5890 | val loss 6.1489
+epoch 121 | train loss 5.6627 | val loss 6.1335
+epoch 131 | train loss 5.4703 | val loss 6.1198
+epoch 141 | train loss 5.5877 | val loss 6.1100
+epoch 151 | train loss 5.3121 | val loss 6.1040
+epoch 161 | train loss 5.3342 | val loss 6.1051
+epoch 171 | train loss 5.3860 | val loss 6.1134
+epoch 181 | train loss 5.2939 | val loss 6.1212
+epoch 191 | train loss 5.2590 | val loss 6.1288</code></pre>
 </div>
 </div>
-<div id="73876f4c" class="cell" data-execution_count="1">
+<div id="73876f4c" class="cell" data-execution_count="21">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>generated <span class="op">=</span> transformer_model.generate(prompt_ids, max_new_tokens<span class="op">=</span><span class="dv">100</span>)</span>
-<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Prompt: </span><span class="sc">{</span>prompt<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Generated: </span><span class="sc">{</span>tokenizer<span class="sc">.</span>decode(generated[<span class="dv">0</span>].tolist())<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>generated <span class="op">=</span> transformer_model.generate(prompt_ids, max_new_tokens<span class="op">=</span><span class="dv">100</span>)</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Prompt: </span><span class="sc">{</span>prompt<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Generated: </span><span class="sc">{</span>tokenizer<span class="sc">.</span>decode(generated[<span class="dv">0</span>].tolist())<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div class="cell-output cell-output-error">
-<div class="ansi-escaped-output">
-<pre><span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[1]</span><span class="ansi-green-fg">, line 1</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> generated = transformer_model.generate(prompt_ids, max_new_tokens=<span class="ansi-green-fg">100</span>)
-<span class="ansi-green-fg">      2</span> print(f"Prompt: {prompt}")
-<span class="ansi-green-fg">      3</span> print(f"Generated: {tokenizer.decode(generated[<span class="ansi-green-fg">0</span>].tolist())}")
-
-<span class="ansi-red-fg">NameError</span>: name 'transformer_model' is not defined</pre>
-</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Prompt: To be or not to be
+Generated: To be or not to be we do , For a deed ? Proceed hath for my daughter ; Their order All noon wit that march to bring or in Warwick im renowned honours not follow I hope the in sur ly doing . The Citizens : Ere , you out home . My time full ! What , lest itself Clarence . EAR nothing soundly , we never the mayor ; To say it should arti reasons may reasons Northumberland , which ! You my favour : But instruct able You come , but no more on - up thee , Aff with ally say</code></pre>
 </div>
 </div>
 <p>The generated text is still not coherent, but it definitely is an improvement over the bigram model. Words have been generated, and smaller sections of the text look syntactically correct. This model that we trained did not have a linear layer to allow the updated tokens to interact with each other, as well as has a single attention head. So the generated text qualitatively tracks with what we know about our model.</p>
@@ -792,7 +781,7 @@ epoch 191 | train loss 5.0297 | val loss 6.1607</code></pre>
 <p><span class="math display">\[\text{PPL} = \exp\left(\frac{1}{N}\sum_{i=1}^{N} \mathcal{L}_i\right)\]</span></p>
 <p>Where <span class="math inline">\(\mathcal{L}_i\)</span> is the cross-entropy loss at token <span class="math inline">\(i\)</span> and <span class="math inline">\(N\)</span> is the total number of tokens. A perplexity of <span class="math inline">\(k\)</span> means the model is, on average, as uncertain as if it had to choose uniformly among <span class="math inline">\(k\)</span> options. So lower is better.</p>
 <p>We use <code>reduction='sum'</code> and accumulate over tokens across all batches before dividing. Using the average loss per batch and then averaging those averages (<code>reduction='mean'</code>) would give a wrong result when the last batch is smaller than the rest.</p>
-<div id="f514a035" class="cell" data-execution_count="108">
+<div id="f514a035" class="cell" data-execution_count="22">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb36"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="at">@torch.no_grad</span>()</span>
@@ -816,7 +805,7 @@ epoch 191 | train loss 5.0297 | val loss 6.1607</code></pre>
 <span id="cb36-19"><a href="#cb36-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> torch.exp(torch.tensor(total_loss <span class="op">/</span> total_tokens)).item()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<div id="b0d04c7a" class="cell" data-execution_count="120">
+<div id="b0d04c7a" class="cell" data-execution_count="23">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb37"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>bigram_ppl <span class="op">=</span> compute_perplexity(bigram_model, test_loader)</span>
@@ -830,15 +819,26 @@ epoch 191 | train loss 5.0297 | val loss 6.1607</code></pre>
 <div class="cell-output cell-output-stdout">
 <pre><code>Model          Perplexity
 -------------------------
-Bigram            1019.62
-Transformer        770.24</code></pre>
+Bigram            1025.62
+Transformer        881.35</code></pre>
 </div>
 </div>
 </section>
 </section>
 <section id="summary" class="level2">
 <h2 class="anchored" data-anchor-id="summary">6. Summary</h2>
-<p>To recap: - We built a bigram model, that predicts the next token based only on the logits of the previous token - Attention allows tokens to interact with each and update the inner embeddings by broadcasting 3 vectors per token: query, key and value - <strong>Query</strong> — <em>“What am I looking for?”</em> Token <code>t</code> broadcasts a query vector describing the kind of information it needs. - <strong>Key</strong> — <em>“What do I contain?”</em> Every token broadcasts a key vector that represents its label. - <strong>Value</strong> — <em>“What do I provide?”</em> Every token broadcasts a value vector which represents the information it will share if selected, - We take the dot product of a query for a given token against the key for every other token. This informs how strongly the current token should be attented to by every token. - Multiplying it with the values gives us what the transformed value of a token <em>represents</em> after it has interacted with every other token in the sequence - Pass through a linear feed forward layer to get the output in the embedding space - We modify the bigram model and add positional encoding before the attention head layer - Qualitative comparison of the two models on a test set can be done by using a metric like Perplexity. It measures how confused a model is by the next token and does that for every token in the test sequence.</p>
+<p>To recap:</p>
+<ul>
+<li>We built a bigram model, that predicts the next token based only on the logits of the previous token</li>
+<li>Attention allows tokens to interact with each and update the inner embeddings by broadcasting 3 vectors per token: query, key and value - <strong>Query</strong> — <em>“What am I looking for?”</em> Token <code>t</code> broadcasts a query vector describing the kind of information it needs. - <strong>Key</strong> — <em>“What do I contain?”</em> Every token broadcasts a key vector that represents its label. - <strong>Value</strong> — <em>“What do I provide?”</em> Every token broadcasts a value vector which represents the information it will share if selected
+<ul>
+<li>We take the dot product of a query for a given token against the key for every other token. This informs how strongly the current token should be attented to by every token.</li>
+<li>Multiplying it with the values gives us what the transformed value of a token <em>represents</em> after it has interacted with every other token in the sequence</li>
+<li>Pass through a linear feed forward layer to get the output in the embedding space</li>
+</ul></li>
+<li>We modify the bigram model and add positional encoding before the attention head layer</li>
+<li>Qualitative comparison of the two models on a test set can be done by using a metric like Perplexity. It measures how confused a model is by the next token and does that for every token in the test sequence.</li>
+</ul>
 <p>A lot of the implementation details come from Andrej Karpathy’s excellent <a href="https://www.youtube.com/watch?v=kCc8FmEb1nY">video</a> on implementing GPT from scratch, which also dives into multi head attention and chaining together multiple encoder and decoder blocks. I used that and the original Attention Is All You Need paper as reference.</p>
 <p>This notebook only covered a single attention head, which we will use to explore what the embeddings represent in a future notebook.</p>
 

@@ -7,6 +7,8 @@
   },
   {
     "listing": "/papers/index.html",
-    "items": []
+    "items": [
+      "/papers/attention-is-all-you-need/notebook.html"
+    ]
   }
 ]
